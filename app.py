@@ -7,13 +7,13 @@ from os import environ
 load_dotenv()
 
 app=Flask(__name__)
-CORS(app)
+# CORS(app)
 
 app.config['MYSQL_HOST']=environ.get('MYSQL_HOST')
 app.config['MYSQL_USER']=environ.get('MYSQL_USER')
 app.config['MYSQL_PASSWORD']=environ.get('MYSQL_PASSWORD')
 app.config['MYSQL_DB']=environ.get('MYSQL_DB')
-app.config['MYSQL_PORT']=environ.get('MYSQL_PORT')
+app.config['MYSQL_PORT']=int(environ.get('MYSQL_PORT'))
 
 mysql=MySQL(app)
 
@@ -28,18 +28,40 @@ def inicio():
 @app.route("/departamentos",methods=["GET","POST"])
 def gestion_departamentos():
     if request.method=='GET':
+        cur=mysql.connection.cursor()
+        cur.execute("SELECT * FROM DEPARTAMENTOS")
+        resultados=cur.fetchall()
+        departamentos=[]
+        for resultado in resultados:
+            departamentos.append({
+                "id":resultado[0],
+                "nombre":resultado[1]
+            })
+        print(departamentos)
+
         return{
-            "content":"",
-            "message":""
+            "content":departamentos,
+            "message":"Todos los departamentos"
         },200
     elif request.method=="POST":
+        data=request.get_json()
+        cur=mysql.connection.cursor()
+        cur.execute("INSERT INTO DEPARTAMENTOS(NOMBRE) VALUES('%s')" % data['nombre'])
+        mysql.connection.commit()
+
+        print(data)
         return{
-            "content":"",
-            "message":""
+            "content":data,
+            "message":"Departamento creado exitosamente"
         },201
 @app.route("/departamento/<int:id>",methods=["GET","PUT","DELETE"])
 def gestion_departamento(id):
     if request.method=="GET":
+        cur=mysql.connection.cursor()
+        cur.execute("SELECT * FROM DEP ARTAMENTOS WHERE ID=%d" % id)
+        resultado=cur.fetchall()
+        print(resultado)
+
         return{
             "content":"",
             "message":""
