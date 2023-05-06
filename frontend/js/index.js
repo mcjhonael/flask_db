@@ -52,3 +52,8 @@ btnActualizar.onclick=()=>{
         console.log(res);
     })
 }
+
+//falta corregir la base de datos indicando el modo de eliminacion 
+const eliminarDepartamento=()=>{
+    deleteDepartamento(2)
+}
