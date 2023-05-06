@@ -7,7 +7,7 @@ from os import environ
 load_dotenv()
 
 app=Flask(__name__)
-# CORS(app)
+CORS(app=app)
 
 app.config['MYSQL_HOST']=environ.get('MYSQL_HOST')
 app.config['MYSQL_USER']=environ.get('MYSQL_USER')
@@ -16,10 +16,6 @@ app.config['MYSQL_DB']=environ.get('MYSQL_DB')
 app.config['MYSQL_PORT']=int(environ.get('MYSQL_PORT'))
 
 mysql=MySQL(app)
-
-# print(app.config)
-# print("++++++")
-# print(environ)
 
 @app.route("/")
 def inicio():
@@ -37,8 +33,6 @@ def gestion_departamentos():
                 "id":resultado[0],
                 "nombre":resultado[1]
             })
-        print(departamentos)
-
         return{
             "content":departamentos,
             "message":"Todos los departamentos"
@@ -48,33 +42,62 @@ def gestion_departamentos():
         cur=mysql.connection.cursor()
         cur.execute("INSERT INTO DEPARTAMENTOS(NOMBRE) VALUES('%s')" % data['nombre'])
         mysql.connection.commit()
-
-        print(data)
         return{
             "content":data,
             "message":"Departamento creado exitosamente"
         },201
+    
 @app.route("/departamento/<int:id>",methods=["GET","PUT","DELETE"])
 def gestion_departamento(id):
     if request.method=="GET":
         cur=mysql.connection.cursor()
-        cur.execute("SELECT * FROM DEP ARTAMENTOS WHERE ID=%d" % id)
-        resultado=cur.fetchall()
-        print(resultado)
-
+        cur.execute("SELECT * FROM DEPARTAMENTOS WHERE ID=%d" % id)
+        resultado=cur.fetchone()
+        if resultado is None:
+            return{
+                "content":None,
+                "message":"Departamento no encontrado"
+            },404
+        departamento={
+            "id":resultado[0],
+            "nombre":resultado[1]
+        }
         return{
-            "content":"",
-            "message":""
-        }   
+            "content":departamento,
+            "message":"Departamentos actualizado"
+        },200
+    
     elif request.method=="PUT":
+        data=request.get_json()
+        cur=mysql.connection.cursor()
+        cur.execute('SELECT * FROM DEPARTAMENTOS WHERE ID=%d' % id)
+        resultado=cur.fetchone()
+        if resultado is None:
+            return{
+                "content":None,
+                "message":"Departamento no encontrado"
+            },404
+        cur.execute("UPDATE DEPARTAMENTOS SET NOMBRE='%s' WHERE ID=%d" % (data['nombre'],id))
+        mysql.connection.commit()
+        print("paso normal")
         return{
-            "content":"",
-            "message":""
-        }
+            "content":data,
+            "message":"Departamento actualizado"
+        },201
     elif request.method=="DELETE":
+        cur=mysql.connection.cursor()
+        cur.execute("SELECT * FROM DEPARTAMENTOS WHERE ID=%d" % id)
+        resultado=cur.fetchone()
+        if resultado is None:
+            return{
+                "content":None,
+                "message":"Departamentos no encontrado"
+            }
+        cur.execute("DELETE FROM DEPARTAMENTO WHERE ID=%d" % id)
+        mysql.connection.commit()
         return{
-            "content":"",
-            "message":""
-        }
+            "content":None,
+            "message":"Departamento eliminado"
+        },204
 if __name__=="__main__":
     app.run(debug=True,port=5000)
